@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#B22234" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RSL Scout" />
+  <meta name="description" content="Real Salt Lake talent tracking & scouting platform" />
+
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="icon" href="/icons/icon-192.png" />
+
+  <title>RSL Scout</title>
+
+  <style>
+    :root {
+      --red: #B22234;
+      --red-dark: #8B1A1A;
+      --red-light: #F9E9EB;
+      --green: #1D9E75;
+      --green-light: #E1F5EE;
+      --green-dark: #085041;
+      --amber: #EF9F27;
+      --amber-light: #FAEEDA;
+      --amber-dark: #633806;
+      --blue-light: #E6F1FB;
+      --blue-dark: #0C447C;
+      --gray-50: #F8F8F7;
+      --gray-100: #F0EFEA;
+      --gray-200: #D3D1C7;
+      --gray-400: #888780;
+      --gray-600: #5F5E5A;
+      --gray-900: #1A1A18;
+      --bg: #F5F4F0;
+      --surface: #FFFFFF;
+      --border: rgba(0,0,0,0.1);
+      --text: #1A1A18;
+      --text-muted: #888780;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111110;
+        --surface: #1E1E1C;
+        --border: rgba(255,255,255,0.1);
+        --text: #F0EFEA;
+        --text-muted: #888780;
+        --gray-50: #1E1E1C;
+        --gray-100: #2A2A28;
+        --green-light: #0A2E22;
+        --green-dark: #9FE1CB;
+        --amber-light: #2E1E06;
+        --amber-dark: #FAC775;
+        --blue-light: #0A1E2E;
+        --blue-dark: #85B7EB;
+        --red-light: #2E0A0E;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      overscroll-behavior: none;
+    }
+
+    /* ── Layout ── */
+    .app { display: flex; flex-direction: column; height: 100dvh; }
+
+    .header {
+      background: var(--red);
+      color: #fff;
+      padding: 12px 16px;
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    }
+
+    .header-crest {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .header-title { font-size: 16px; font-weight: 600; flex: 1; }
+    .header-sub { font-size: 11px; opacity: 0.75; }
+
+    .header-badge {
+      font-size: 10px; font-weight: 600;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 10px;
+      padding: 2px 8px;
+    }
+
+    /* ── Install prompt ── */
+    .install-banner {
+      background: var(--red);
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+    }
+    .install-banner.hidden { display: none; }
+    .install-btn {
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .install-close { opacity: 0.7; cursor: pointer; padding: 4px; font-size: 16px; }
+
+    /* ── Content area ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px 14px 0;
+    }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      background: var(--surface);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      padding-bottom: var(--safe-bottom);
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 500;
+      border: none;
+      background: none;
+      transition: color 0.15s;
+    }
+
+    .nav-item.active { color: var(--red); }
+    .nav-item svg { width: 20px; height: 20px; }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Metric cards ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .metric-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 700; }
+    .metric-sub { font-size: 10px; margin-top: 2px; }
+    .up { color: var(--green); }
+    .dn { color: #A32D2D; }
+    .mu { color: var(--text-muted); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+
+    .card-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .card-title { font-size: 13px; font-weight: 600; }
+    .card-action { font-size: 11px; color: var(--red); background: none; border: none; cursor: pointer; padding: 0; }
+
+    /* ── Section label ── */
+    .sec-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 14px 0 7px;
+    }
+
+    /* ── Player rows ── */
+    .prow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .prow:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .av {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .a1{background:#9FE1CB;color:#085041;} .a2{background:#B5D4F4;color:#0C447C;}
+    .a3{background:#CECBF6;color:#3C3489;} .a4{background:#F5C4B3;color:#712B13;}
+    .a5{background:#FAC775;color:#633806;} .a6{background:#C0DD97;color:#27500A;}
+    .a7{background:#F4C0D1;color:#72243E;} .a8{background:#D3D1C7;color:#444441;}
+    .a9{background:#5DCAA5;color:#04342C;}
+
+    .pinfo { flex: 1; min-width: 0; }
+    .pname { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pmeta { font-size: 11px; color: var(--text-muted); }
+
+    .bar-wrap { width: 44px; height: 3px; background: var(--gray-100); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+    .bar-fill { height: 100%; border-radius: 2px; }
+
+    .score { font-size: 12px; font-weight: 700; min-width: 26px; text-align: right; }
+
+    /* ── Badges ── */
+    .badge {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .bg { background: var(--green-light); color: var(--green-dark); }
+    .ba { background: var(--amber-light); color: var(--amber-dark); }
+    .br { background: #FCEBEB; color: #791F1F; }
+    .bb { background: var(--blue-light); color: var(--blue-dark); }
+    .bgr { background: var(--gray-100); color: var(--text-muted); }
+
+    /* ── Market value pill ── */
+    .mv-pill {
+      font-size: 10px; font-weight: 600;
+      background: var(--gray-100);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Need rows ── */
+    .need-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+      gap: 8px;
+    }
+    .need-row:last-child { border-bottom: none; }
+    .npos { font-size: 13px; font-weight: 600; }
+    .ndet { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Watchlist rows ── */
+    .wrow {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .wrow:last-child { border-bottom: none; }
+    .wval { font-size: 12px; font-weight: 700; min-width: 44px; text-align: right; }
+
+    .scout-btn {
+      font-size: 10px; padding: 4px 9px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .scout-btn:active { background: var(--gray-100); }
+
+    /* ── Result rows ── */
+    .res-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 13px;
+    }
+    .res-row:last-child { border-bottom: none; }
+
+    /* ── Standings ── */
+    .std-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 12px;
+    }
+    .std-row:last-child { border-bottom: none; }
+    .rsl { background: var(--red-light); border-radius: 6px; padding: 4px 6px; margin: -2px -6px; }
+
+    /* ── AI panel ── */
+    .ai-panel {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+
+    .ai-hdr { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
+    .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+    .ai-out {
+      font-size: 13px; color: var(--text-muted); line-height: 1.65;
+      min-height: 56px;
+    }
+
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .chip {
+      font-size: 11px; padding: 5px 10px;
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      background: var(--gray-50);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .chip:active { background: var(--gray-100); }
+
+    /* ── AI page input ── */
+    .ai-input-wrap { display: flex; gap: 8px; margin-bottom: 10px; }
+    .ai-input {
+      flex: 1; font-size: 13px;
+      padding: 10px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      -webkit-appearance: none;
+    }
+    .ai-input:focus { outline: 2px solid var(--red); outline-offset: -1px; }
+    .ai-send {
+      padding: 10px 14px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ai-send:active { opacity: 0.85; }
+
+    .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ai-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .ai-card:active { background: var(--gray-50); }
+    .ai-card-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+    .ai-card-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Sell rows ── */
+    .sell-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .sell-row:last-child { border-bottom: none; }
+    .trend {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .t-up { background: var(--green-light); color: var(--green-dark); }
+    .t-dn { background: #FCEBEB; color: #791F1F; }
+    .t-fl { background: var(--amber-light); color: var(--amber-dark); }
+
+    /* ── Transfermarkt setup card ── */
+    .tm-card {
+      background: var(--red-light);
+      border: 0.5px solid rgba(178,34,52,0.2);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .tm-title { font-size: 12px; font-weight: 600; color: var(--red); margin-bottom: 4px; }
+    .tm-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
+    .tm-input {
+      width: 100%; font-size: 12px;
+      padding: 8px 10px;
+      border: 0.5px solid rgba(178,34,52,0.3);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .tm-row { display: flex; gap: 6px; }
+    .tm-btn {
+      flex: 1; font-size: 11px; font-weight: 600;
+      padding: 7px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .tm-btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
+    .tm-status { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 5px; min-height: 14px; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Bottom spacer ── */
+    .bottom-spacer { height: 16px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 0; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-crest">RSL</div>
+    <div style="flex:1">
+      <div class="header-title">RSL Scout</div>
+      <div class="header-sub">Real Salt Lake · MLS 2026</div>
+    </div>
+    <div class="header-badge" id="standing-badge">West #4</div>
+  </div>
+
+  <!-- Install banner (shown on eligible browsers) -->
+  <div class="install-banner hidden" id="install-banner">
+    <span>Add RSL Scout to your home screen</span>
+    <button class="install-btn" id="install-btn">Install</button>
+    <span class="install-close" id="install-close">✕</span>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content" id="content">
+
+    <!-- ═══════════════════════════════════ DASHBOARD ═══════════════════════════════════ -->
+    <div id="page-dashboard" class="page active">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">League position</div><div class="metric-value">4th</div><div class="metric-sub up">Western Conf.</div></div>
+        <div class="metric"><div class="metric-label">Form</div><div class="metric-value">W4·D1·L1</div><div class="metric-sub up">13 pts</div></div>
+        <div class="metric"><div class="metric-label">Squad value</div><div class="metric-value">€9.4M</div><div class="metric-sub mu">Transfermarkt</div></div>
+        <div class="metric"><div class="metric-label">Sell targets</div><div class="metric-value">4</div><div class="metric-sub dn">Est. €725k+</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">Top performers</span><button class="card-action" onclick="nav('squad')">Full squad →</button></div>
+        <div class="prow"><div class="av a1">DL</div><div class="pinfo"><div class="pname">Diego Luna</div><div class="pmeta">CM · 22 · Mexico · DP</div></div><div class="bar-wrap"><div class="bar-fill" style="width:91%;background:#1D9E75"></div></div><span class="score up">91</span></div>
+        <div class="prow"><div class="av a2">EE</div><div class="pinfo"><div class="pname">Emeka Eneli</div><div class="pmeta">CM · 22 · USA · 2025 MVP</div></div><div class="bar-wrap"><div class="bar-fill" style="width:86%;background:#1D9E75"></div></div><span class="score up">86</span></div>
+        <div class="prow"><div class="av a3">PR</div><div class="pinfo"><div class="pname">Pablo Ruiz</div><div class="pmeta">CM · 26 · Argentina</div></div><div class="bar-wrap"><div class="bar-fill" style="width:83%;background:#1D9E75"></div></div><span class="score up">83</span></div>
+        <div class="prow"><div class="av a5">DG</div><div class="pinfo"><div class="pname">Diogo Gonçalves</div><div class="pmeta">RW · 27 · Portugal · DP</div></div><div class="bar-wrap"><div class="bar-fill" style="width:80%;background:#1D9E75"></div></div><span class="score up">80</span></div>
+        <div class="prow"><div class="av a9">RC</div><div class="pinfo"><div class="pname">Rwan Cruz</div><div class="pmeta">ST · 24 · Brazil · DP</div></div><div class="bar-wrap"><div class="bar-fill" style="width:78%;background:#EF9F27"></div></div><span class="score" style="color:#BA7517">78</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">Acquisition needs</span><button class="card-action" onclick="nav('watchlist')">Scout →</button></div>
+        <div class="need-row"><div><div class="npos">Left back</div><div class="ndet">Javain Brown TBD · thin cover</div></div><span class="badge br">High</span></div>
+        <div class="need-row"><div><div class="npos">CB depth</div><div class="ndet">Henry & Junqua contracts TBD</div></div><span class="badge br">High</span></div>
+        <div class="need-row"><div><div class="npos">Striker depth</div><div class="ndet">Cruz only DP forward</div></div><span class="badge ba">Medium</span></div>
+        <div class="need-row"><div><div class="npos">GK backup</div><div class="ndet">Kerkvliet developing</div></div><span class="badge bgr">Low</span></div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-hdr"><div class="ai-dot"></div><span class="card-title">AI briefing</span></div>
+        <div class="ai-out" id="dash-ai">RSL enters 2026 in strong shape — 4th West, backed by one of MLS's most exciting midfields in Diego Luna and Emeka Eneli. The Designated Player trio gives real quality across the pitch. Key risk: LB and CB depth are unsettled, with Brown, Henry, and Junqua all in ongoing discussions. Resolving the back line before the window closes is RSL's #1 priority.</div>
+        <div class="chips">
+          <button class="chip" onclick="askAI('What is RSL most urgent transfer priority right now and why?')">Top priority ↗</button>
+          <button class="chip" onclick="askAI('What is RSL realistic ceiling in MLS 2026 and what would it take to win the Western Conference?')">Season ceiling ↗</button>
+        </div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════ SQUAD ═══════════════════════════════════ -->
+    <div id="page-squad" class="page">
+      <div class="tm-card">
+        <div class="tm-title">Transfermarkt live data (optional)</div>
+        <div class="tm-desc">Self-host <a href="https://github.com/felipeall/transfermarkt-api" style="color:var(--red)">felipeall/transfermarkt-api</a> via Docker (free). RSL club ID: 6643</div>
+        <input class="tm-input" id="tmUrl" placeholder="https://your-instance.fly.dev" type="url">
+        <div class="tm-row">
+          <button class="tm-btn primary" onclick="connectTM()">Connect live</button>
+          <button class="tm-btn" onclick="loadDemo()">Demo mode</button>
+        </div>
+        <div class="tm-status" id="tmStatus">Pre-loaded 2026 RSL squad · Transfermarkt club ID 6643</div>
+      </div>
+
+      <div class="sec-lbl">Goalkeepers</div>
+      <div class="card">
+        <div class="prow"><div class="av a8">RC</div><div class="pinfo"><div class="pname">Rafael Cabral <span class="badge bg" style="font-size:9px">Captain</span></div><div class="pmeta">GK · 35 · Brazil</div></div><span class="mv-pill">€500k</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a8">MK</div><div class="pinfo"><div class="pname">Max Kerkvliet</div><div class="pmeta">GK · 23 · USA · HG</div></div><span class="mv-pill">€100k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a8">MS</div><div class="pinfo"><div class="pname">Mason Stajduhar</div><div class="pmeta">GK · 24 · USA</div></div><span class="mv-pill">€75k</span><span class="badge br">Sell</span></div>
+      </div>
+
+      <div class="sec-lbl">Defenders</div>
+      <div class="card">
+        <div class="prow"><div class="av a4">JG</div><div class="pinfo"><div class="pname">Justen Glad <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CB · 28 · USA</div></div><span class="mv-pill">€700k</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a2">DY</div><div class="pinfo"><div class="pname">DeAndre Yedlin</div><div class="pmeta">RB · 32 · USA · USMNT</div></div><span class="mv-pill">€350k</span><span class="badge br">Sell</span></div>
+        <div class="prow"><div class="av a3">JB</div><div class="pinfo"><div class="pname">Javain Brown <span class="badge ba" style="font-size:9px">Talks</span></div><div class="pmeta">LB · 26 · Jamaica</div></div><span class="mv-pill">€600k</span><span class="badge ba">TBD</span></div>
+        <div class="prow"><div class="av a5">KH</div><div class="pinfo"><div class="pname">Kobi Henry <span class="badge ba" style="font-size:9px">Talks</span></div><div class="pmeta">CB · 20 · USA</div></div><span class="mv-pill">€400k</span><span class="badge ba">TBD</span></div>
+        <div class="prow"><div class="av a6">SJ</div><div class="pinfo"><div class="pname">Sam Junqua <span class="badge ba" style="font-size:9px">Talks</span></div><div class="pmeta">LB/CB · 25 · USA</div></div><span class="mv-pill">€300k</span><span class="badge ba">TBD</span></div>
+        <div class="prow"><div class="av a7">AK</div><div class="pinfo"><div class="pname">Alex Katranis</div><div class="pmeta">CB · 22 · USA</div></div><span class="mv-pill">€150k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a4">LR</div><div class="pinfo"><div class="pname">Luis Rivera <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">RB · 21 · USA</div></div><span class="mv-pill">€200k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a2">BV</div><div class="pinfo"><div class="pname">Brayan Vera</div><div class="pmeta">CB · 24 · Colombia</div></div><span class="mv-pill">€250k</span><span class="badge bgr">Monitor</span></div>
+        <div class="prow"><div class="av a8">PQ</div><div class="pinfo"><div class="pname">Philip Quinton</div><div class="pmeta">CB · 22 · USA</div></div><span class="mv-pill">€125k</span><span class="badge br">Sell</span></div>
+      </div>
+
+      <div class="sec-lbl">Midfielders</div>
+      <div class="card">
+        <div class="prow"><div class="av a1">DL</div><div class="pinfo"><div class="pname">Diego Luna <span class="badge bb" style="font-size:9px">DP</span></div><div class="pmeta">CM · 22 · Mexico</div></div><span class="mv-pill">€2.5M</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a2">EE</div><div class="pinfo"><div class="pname">Emeka Eneli <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CM · 22 · USA · MVP</div></div><span class="mv-pill">€1.2M</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a3">PR</div><div class="pinfo"><div class="pname">Pablo Ruiz</div><div class="pmeta">CM · 26 · Argentina</div></div><span class="mv-pill">€800k</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a5">NP</div><div class="pinfo"><div class="pname">Nelson Palacio <span class="badge bgr" style="font-size:9px">Loan</span></div><div class="pmeta">LW · 26 · Colombia</div></div><span class="mv-pill">€500k</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a7">BO</div><div class="pinfo"><div class="pname">Braian Ojeda</div><div class="pmeta">DM · 24 · Paraguay</div></div><span class="mv-pill">€300k</span><span class="badge bgr">Monitor</span></div>
+        <div class="prow"><div class="av a4">NC</div><div class="pinfo"><div class="pname">Noel Caliskan</div><div class="pmeta">CM · 23 · Germany</div></div><span class="mv-pill">€250k</span><span class="badge bgr">Monitor</span></div>
+        <div class="prow"><div class="av a6">OA</div><div class="pinfo"><div class="pname">Owen Anderson <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CM · 21 · USA</div></div><span class="mv-pill">€200k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a1">JV</div><div class="pinfo"><div class="pname">Juan Gio Villa <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CM · 20 · USA</div></div><span class="mv-pill">€150k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a2">OM</div><div class="pinfo"><div class="pname">Omar Marquez <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CM · 19 · USA</div></div><span class="mv-pill">€100k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a8">TW</div><div class="pinfo"><div class="pname">Tyler Wolff</div><div class="pmeta">MF · 25 · USA</div></div><span class="mv-pill">€175k</span><span class="badge br">Sell</span></div>
+      </div>
+
+      <div class="sec-lbl">Forwards</div>
+      <div class="card">
+        <div class="prow"><div class="av a9">RC</div><div class="pinfo"><div class="pname">Rwan Cruz <span class="badge bb" style="font-size:9px">DP</span></div><div class="pmeta">ST · 24 · Brazil</div></div><span class="mv-pill">€1.5M</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a5">DG</div><div class="pinfo"><div class="pname">Diogo Gonçalves <span class="badge bb" style="font-size:9px">DP</span></div><div class="pmeta">RW · 27 · Portugal</div></div><span class="mv-pill">€1.8M</span><span class="badge bg">Keep</span></div>
+        <div class="prow"><div class="av a6">DM</div><div class="pinfo"><div class="pname">Dominik Marczuk <span class="badge bgr" style="font-size:9px">Loan</span></div><div class="pmeta">RW · 22 · Poland · U-22</div></div><span class="mv-pill">€400k</span><span class="badge bgr">Loan</span></div>
+        <div class="prow"><div class="av a7">VO</div><div class="pinfo"><div class="pname">Victor Olatunji</div><div class="pmeta">ST · 23 · Nigeria</div></div><span class="mv-pill">€300k</span><span class="badge bgr">Monitor</span></div>
+        <div class="prow"><div class="av a4">AP</div><div class="pinfo"><div class="pname">Ariath Piol</div><div class="pmeta">ST · 21 · USA</div></div><span class="mv-pill">€150k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a3">JB</div><div class="pinfo"><div class="pname">Jesus Barea</div><div class="pmeta">ST · 23 · El Salvador</div></div><span class="mv-pill">€200k</span><span class="badge bgr">Monitor</span></div>
+        <div class="prow"><div class="av a1">ZG</div><div class="pinfo"><div class="pname">Zavier Gozo <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">FW · 21 · USA</div></div><span class="mv-pill">€125k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a2">AH</div><div class="pinfo"><div class="pname">Aiden Hezarkhani <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">FW · 19 · USA · U-22</div></div><span class="mv-pill">€100k</span><span class="badge bgr">Develop</span></div>
+        <div class="prow"><div class="av a5">MZ</div><div class="pinfo"><div class="pname">Marcos Zambrano</div><div class="pmeta">FW · 20 · USA</div></div><span class="mv-pill">€150k</span><span class="badge bgr">Develop</span></div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════ WATCHLIST ═══════════════════════════════════ -->
+    <div id="page-watchlist" class="page">
+      <div class="sec-lbl">Priority — Left back</div>
+      <div class="card">
+        <div class="wrow"><div class="av a1">AG</div><div class="pinfo"><div class="pname">Andrew Gutman</div><div class="pmeta">LB · 27 · USA · Charlotte FC</div></div><span class="badge bg">Fit</span><span class="wval">€350k</span><button class="scout-btn" onclick="askAI('Give me a scouting report on Andrew Gutman from Charlotte FC as a left back for Real Salt Lake')">Scout ↗</button></div>
+        <div class="wrow"><div class="av a2">KW</div><div class="pinfo"><div class="pname">Kai Wagner</div><div class="pmeta">LB · 29 · Germany · Philadelphia</div></div><span class="badge bb">Quality</span><span class="wval">€500k</span><button class="scout-btn" onclick="askAI('Analyze Kai Wagner Philadelphia Union as a left back transfer target for Real Salt Lake')">Scout ↗</button></div>
+      </div>
+
+      <div class="sec-lbl">Priority — CB depth</div>
+      <div class="card">
+        <div class="wrow"><div class="av a3">SO</div><div class="pinfo"><div class="pname">Shane O'Neill</div><div class="pmeta">CB · 30 · USA · Colorado</div></div><span class="badge bg">Fit</span><span class="wval">€200k</span><button class="scout-btn" onclick="askAI('Is Shane O Neill from Colorado Rapids a good CB depth signing for Real Salt Lake?')">Scout ↗</button></div>
+        <div class="wrow"><div class="av a4">MA</div><div class="pinfo"><div class="pname">Marlon</div><div class="pmeta">CB · 30 · Brazil · NY Red Bulls</div></div><span class="badge ba">Exp.</span><span class="wval">€300k</span><button class="scout-btn" onclick="askAI('Would Marlon from NY Red Bulls fit Real Salt Lake defensive needs as center back depth?')">Scout ↗</button></div>
+      </div>
+
+      <div class="sec-lbl">Medium — Striker depth</div>
+      <div class="card">
+        <div class="wrow"><div class="av a5">BV</div><div class="pinfo"><div class="pname">Brandon Vazquez</div><div class="pmeta">ST · 27 · USA · USMNT</div></div><span class="badge bg">Fit</span><span class="wval">€800k</span><button class="scout-btn" onclick="askAI('Analyze Brandon Vazquez as a striker depth signing for Real Salt Lake in 2026')">Scout ↗</button></div>
+        <div class="wrow"><div class="av a6">CH</div><div class="pinfo"><div class="pname">Cucho Hernandez</div><div class="pmeta">ST · 26 · Colombia · Columbus</div></div><span class="badge br">$$</span><span class="wval">€6M</span><button class="scout-btn" onclick="askAI('Is Cucho Hernandez realistic for RSL and what would that signing do for the team?')">Scout ↗</button></div>
+      </div>
+
+      <div class="sec-lbl">Long-term — GK</div>
+      <div class="card">
+        <div class="wrow"><div class="av a8">SC</div><div class="pinfo"><div class="pname">Steve Clark</div><div class="pmeta">GK · 36 · USA · Portland</div></div><span class="badge bgr">Budget</span><span class="wval">€50k</span><button class="scout-btn" onclick="askAI('Would Steve Clark be a reasonable backup GK signing for RSL given Rafael Cabral age 35?')">Scout ↗</button></div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-hdr"><div class="ai-dot"></div><span class="card-title">Transfer AI</span></div>
+        <div class="ai-out" id="watch-ai">Priority spend for LB + CB: €550k–€1.2M. If Javain Brown stays, a LB signing becomes elite depth; if he leaves, it's an essential starter. Kai Wagner is the highest-upside LB option. Shane O'Neill is the budget-smart CB move.</div>
+        <div class="chips">
+          <button class="chip" onclick="askAI('Who are the best value left backs available in MLS 2026 that fit RSL budget?')">Budget LBs ↗</button>
+          <button class="chip" onclick="askAI('Full transfer window plan for Real Salt Lake — buy and sell in order of priority')">Full plan ↗</button>
+        </div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════ SELL ═══════════════════════════════════ -->
+    <div id="page-sell" class="page">
+      <div class="sec-lbl">Clear sells — window now</div>
+      <div class="card">
+        <div class="sell-row"><div class="av a8">MS</div><div class="pinfo"><div class="pname">Mason Stajduhar</div><div class="pmeta">GK · 24 · surplus</div></div><span class="trend t-fl">Surplus</span><span class="mv-pill">€75k</span><button class="scout-btn" onclick="askAI('Who would buy Mason Stajduhar from RSL and what is his realistic transfer value?')">↗</button></div>
+        <div class="sell-row"><div class="av a8">PQ</div><div class="pinfo"><div class="pname">Philip Quinton</div><div class="pmeta">CB · 22 · depth</div></div><span class="trend t-fl">Surplus</span><span class="mv-pill">€125k</span><button class="scout-btn" onclick="askAI('Make the case for selling Philip Quinton from RSL and identify likely MLS buyers')">↗</button></div>
+        <div class="sell-row"><div class="av a8">TW</div><div class="pinfo"><div class="pname">Tyler Wolff</div><div class="pmeta">MF · 25 · low minutes</div></div><span class="trend t-dn">Fading</span><span class="mv-pill">€175k</span><button class="scout-btn" onclick="askAI('Should RSL sell Tyler Wolff this window and what would they gain?')">↗</button></div>
+        <div class="sell-row"><div class="av a2">DY</div><div class="pinfo"><div class="pname">DeAndre Yedlin</div><div class="pmeta">RB · 32 · aging</div></div><span class="trend t-dn">Declining</span><span class="mv-pill">€350k</span><button class="scout-btn" onclick="askAI('Should RSL sell DeAndre Yedlin this summer to free up roster space?')">↗</button></div>
+      </div>
+
+      <div class="sec-lbl">Strategic — sell only at right price</div>
+      <div class="card">
+        <div class="sell-row"><div class="av a1">DL</div><div class="pinfo"><div class="pname">Diego Luna <span class="badge bb" style="font-size:9px">DP</span></div><div class="pmeta">CM · 22 · top asset</div></div><span class="trend t-up">Rising</span><span class="mv-pill">€2.5M+</span><button class="scout-btn" onclick="askAI('What would it take for RSL to sell Diego Luna and is it worth it?')">↗</button></div>
+        <div class="sell-row"><div class="av a2">EE</div><div class="pinfo"><div class="pname">Emeka Eneli <span class="badge bg" style="font-size:9px">HG</span></div><div class="pmeta">CM · 22 · 2025 MVP</div></div><span class="trend t-up">Rising</span><span class="mv-pill">€1.2M+</span><button class="scout-btn" onclick="askAI('What European clubs would target Emeka Eneli and what sell price should RSL hold out for?')">↗</button></div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-hdr"><div class="ai-dot"></div><span class="card-title">Sell strategy</span></div>
+        <div class="ai-out" id="sell-ai">Priority sells (Stajduhar, Quinton, Wolff, Yedlin) are all surplus-to-requirements — sell now to avoid free departures. Combined ~€725k clears roster space. Luna and Eneli are rising assets worth €3.7M+ combined if a European bid arrives. Hold firm: Luna minimum €5M, Eneli minimum €2.5M. Don't sell below value for short-term cash.</div>
+        <div class="chips">
+          <button class="chip" onclick="askAI('What European leagues would most likely bid on Diego Luna in 2026?')">Luna buyers ↗</button>
+          <button class="chip" onclick="askAI('How should RSL handle the Javain Brown contract situation to maximize squad strength?')">Brown deal ↗</button>
+        </div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════ RESULTS ═══════════════════════════════════ -->
+    <div id="page-results" class="page">
+      <div class="sec-lbl">Recent results</div>
+      <div class="card">
+        <div class="res-row"><span>RSL <b>3</b> – 1 SKC</span><div style="display:flex;gap:6px;align-items:center"><span class="badge bg">W</span><span style="font-size:11px;color:var(--text-muted)">Apr 4</span></div></div>
+        <div class="res-row"><span>SAD 2 – <b>2</b> RSL</span><div style="display:flex;gap:6px;align-items:center"><span class="badge bgr">D</span><span style="font-size:11px;color:var(--text-muted)">Mar 22</span></div></div>
+        <div class="res-row"><span>RSL <b>2</b> – 1 ATX</span><div style="display:flex;gap:6px;align-items:center"><span class="badge bg">W</span><span style="font-size:11px;color:var(--text-muted)">Mar 14</span></div></div>
+        <div class="res-row"><span>ATL 2 – <b>3</b> RSL</span><div style="display:flex;gap:6px;align-items:center"><span class="badge bg">W</span><span style="font-size:11px;color:var(--text-muted)">Mar 7</span></div></div>
+        <div class="res-row"><span>RSL <b>2</b> – 1 SEA</span><div style="display:flex;gap:6px;align-items:center"><span class="badge bg">W</span><span style="font-size:11px;color:var(--text-muted)">Feb 28</span></div></div>
+        <div class="res-row"><span>VAN 1 – <b>0</b> RSL</span><div style="display:flex;gap:6px;align-items:center"><span class="badge br">L</span><span style="font-size:11px;color:var(--text-muted)">Feb 21</span></div></div>
+      </div>
+
+      <div class="sec-lbl">Upcoming fixtures</div>
+      <div class="card">
+        <div class="res-row"><span><b>RSL</b> vs San Diego</span><span style="font-size:11px;color:var(--text-muted)">Apr 18 · Home</span></div>
+        <div class="res-row"><span><b>RSL</b> vs Inter Miami</span><span style="font-size:11px;color:var(--text-muted)">Apr 22 · Home</span></div>
+        <div class="res-row"><span>LA Galaxy vs <b>RSL</b></span><span style="font-size:11px;color:var(--text-muted)">Apr 26 · Away</span></div>
+        <div class="res-row"><span><b>RSL</b> vs Portland</span><span style="font-size:11px;color:var(--text-muted)">May 2 · Home</span></div>
+        <div class="res-row"><span>FC Dallas vs <b>RSL</b></span><span style="font-size:11px;color:var(--text-muted)">May 9 · Away</span></div>
+        <div class="res-row"><span><b>RSL</b> vs Houston</span><span style="font-size:11px;color:var(--text-muted)">May 13 · Home</span></div>
+      </div>
+
+      <div class="sec-lbl">Western Conference</div>
+      <div class="card">
+        <div style="display:flex;gap:6px;font-size:10px;color:var(--text-muted);padding-bottom:5px;border-bottom:0.5px solid var(--border);margin-bottom:4px"><span style="width:18px">#</span><span style="flex:1">Team</span><span style="width:20px;text-align:center">W</span><span style="width:20px;text-align:center">D</span><span style="width:20px;text-align:center">L</span><span style="width:24px;text-align:right">Pts</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">1</span><span style="flex:1;font-weight:600">Vancouver</span><span style="width:20px;text-align:center;color:var(--text-muted)">6</span><span style="width:20px;text-align:center;color:var(--text-muted)">0</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700">18</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">2</span><span style="flex:1;font-weight:600">San Jose</span><span style="width:20px;text-align:center;color:var(--text-muted)">6</span><span style="width:20px;text-align:center;color:var(--text-muted)">0</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700">18</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">3</span><span style="flex:1;font-weight:600">LAFC</span><span style="width:20px;text-align:center;color:var(--text-muted)">5</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700">16</span></div>
+        <div class="std-row rsl"><span style="width:18px;color:var(--red);font-weight:700">4</span><span style="flex:1;font-weight:700;color:var(--red)">Real Salt Lake</span><span style="width:20px;text-align:center;color:var(--text-muted)">4</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700;color:var(--red)">13</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">5</span><span style="flex:1;font-weight:600">Seattle</span><span style="width:20px;text-align:center;color:var(--text-muted)">4</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700">13</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">6</span><span style="flex:1;font-weight:600">Colorado</span><span style="width:20px;text-align:center;color:var(--text-muted)">4</span><span style="width:20px;text-align:center;color:var(--text-muted)">0</span><span style="width:20px;text-align:center;color:var(--text-muted)">3</span><span style="width:24px;text-align:right;font-weight:700">12</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">7</span><span style="flex:1;font-weight:600">FC Dallas</span><span style="width:20px;text-align:center;color:var(--text-muted)">3</span><span style="width:20px;text-align:center;color:var(--text-muted)">3</span><span style="width:20px;text-align:center;color:var(--text-muted)">1</span><span style="width:24px;text-align:right;font-weight:700">12</span></div>
+        <div class="std-row"><span style="width:18px;color:var(--text-muted)">8</span><span style="flex:1;font-weight:600">San Diego</span><span style="width:20px;text-align:center;color:var(--text-muted)">3</span><span style="width:20px;text-align:center;color:var(--text-muted)">2</span><span style="width:20px;text-align:center;color:var(--text-muted)">2</span><span style="width:24px;text-align:right;font-weight:700">11</span></div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════ AI ═══════════════════════════════════ -->
+    <div id="page-ai" class="page">
+      <div class="ai-panel">
+        <div class="ai-hdr"><div class="ai-dot"></div><span class="card-title">RSL AI Analyst</span></div>
+        <div class="ai-input-wrap">
+          <input class="ai-input" id="ai-q" placeholder="Ask anything about RSL…" type="text">
+          <button class="ai-send" onclick="askFromInput()">Ask</button>
+        </div>
+        <div class="ai-out" id="main-ai-out">Ask a question or tap a prompt below.</div>
+      </div>
+
+      <div class="sec-lbl">Suggested questions</div>
+      <div class="ai-grid">
+        <button class="ai-card" onclick="askAI('Give me a complete transfer window strategy for Real Salt Lake — who to sell, who to buy, in what order')"><div class="ai-card-title">Full window plan ↗</div><div class="ai-card-sub">Complete buy/sell strategy</div></button>
+        <button class="ai-card" onclick="askAI('What would RSL best XI and formation look like in 2026?')"><div class="ai-card-title">Best XI ↗</div><div class="ai-card-sub">Optimal lineup & shape</div></button>
+        <button class="ai-card" onclick="askAI('Which RSL homegrown players should get more minutes in 2026 and why?')"><div class="ai-card-title">HG pipeline ↗</div><div class="ai-card-sub">8 academy players to watch</div></button>
+        <button class="ai-card" onclick="askAI('How should RSL handle the Javain Brown, Kobi Henry and Sam Junqua contract situations?')"><div class="ai-card-title">Contract talks ↗</div><div class="ai-card-sub">Brown, Henry & Junqua TBD</div></button>
+        <button class="ai-card" onclick="askAI('Compare Diego Luna market value vs other MLS young players — should RSL extend or sell?')"><div class="ai-card-title">Luna value ↗</div><div class="ai-card-sub">Extend, sell, or hold?</div></button>
+        <button class="ai-card" onclick="askAI('Can Real Salt Lake win the MLS Cup in 2026 and what needs to go right?')"><div class="ai-card-title">MLS Cup odds ↗</div><div class="ai-card-sub">What it takes to win it all</div></button>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Bottom navigation -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </button>
+    <button class="nav-item" data-page="squad">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Squad
+    </button>
+    <button class="nav-item" data-page="watchlist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.1 6.4L22 9.3l-5 4.9 1.2 6.8L12 18l-6.2 3 1.2-6.8-5-4.9 6.9-.9z"/></svg>
+      Scout
+    </button>
+    <button class="nav-item" data-page="sell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21L21 3M9 3h9v9"/></svg>
+      Sell
+    </button>
+    <button class="nav-item" data-page="results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-5"/></svg>
+      Results
+    </button>
+    <button class="nav-item" data-page="ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      AI
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ── Navigation ── */
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelector('.nav-item[data-page="' + page + '"]')?.classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+}
+
+document.getElementById('bottom-nav').addEventListener('click', e => {
+  const btn = e.target.closest('.nav-item[data-page]');
+  if (btn) nav(btn.dataset.page);
+});
+
+/* ── AI Context ── */
+const RSL_CONTEXT = `You are a professional MLS talent scout and analytics director for Real Salt Lake (RSL), Sandy, Utah.
+
+REAL 2026 SQUAD (Transfermarkt club ID 6643):
+GK: Rafael Cabral (35, Brazil, captain, €500k, score 78), Max Kerkvliet (23, USA, HG, €100k, score 62), Mason Stajduhar (24, USA, €75k, score 58 — SELL)
+DEF: Justen Glad CB (28, USA, HG, €700k, score 76, KEEP), DeAndre Yedlin RB (32, USA, USMNT, €350k, score 69, SELL — aging), Javain Brown LB (26, Jamaica, €600k, score 73, CONTRACT TBD), Kobi Henry CB (20, USA, €400k, score 67, CONTRACT TBD), Sam Junqua LB/CB (25, USA, €300k, score 64, CONTRACT TBD), Alex Katranis CB (22, USA, €150k, score 59), Luis Rivera RB (21, USA, HG, €200k, score 61), Brayan Vera CB (24, Colombia, €250k, score 63), Philip Quinton CB (22, USA, €125k, score 55, SELL)
+MID: Diego Luna CM (22, Mexico, DP, €2.5M, score 91, KEEP — top asset, MLS Young Player of Year 2024), Emeka Eneli CM (22, USA, HG, 2025 Team MVP, €1.2M, score 86, KEEP), Pablo Ruiz CM (26, Argentina, €800k, score 83, KEEP), Nelson Palacio LW (26, Colombia, on loan Atlético Nacional, €500k, score 74), Owen Anderson CM (21, USA, HG, €200k, score 68), Braian Ojeda DM (24, Paraguay, €300k, score 70), Noel Caliskan CM (23, Germany, €250k, score 65), Juan Gio Villa CM (20, USA, HG, €150k, score 60), Omar Marquez CM (19, USA, HG, €100k, score 55), Luca Moisa MF (19, Romania, HG, €100k, score 52), Tyler Wolff MF (25, USA, €175k, score 61, SELL)
+FWD: Rwan Cruz ST (24, Brazil, DP via RC Lens, €1.5M, score 78, KEEP), Diogo Gonçalves RW (27, Portugal, DP, €1.8M, score 80, KEEP), Dominik Marczuk RW (22, Poland, on loan U-22, €400k, score 71), Victor Olatunji ST (23, Nigeria, €300k, score 65), Ariath Piol ST (21, USA, €150k, score 60), Jesus Barea ST (23, El Salvador, 14 Monarchs goals, €200k, score 62), Zavier Gozo FW (21, USA, HG, €125k, score 57), Aiden Hezarkhani FW (19, USA, HG U-22, €100k, score 53), Marcos Zambrano FW (20, USA, €150k, score 57)
+
+Squad: 30 players. Avg age 23.4. Total value €9.4M. 8 homegrown. 3 DPs. Coach: Pablo Mastroeni.
+Season: W4-D1-L1, 13 pts, West #4. Beat SKC 3-1 (Apr 4), Drew SAD 2-2 (Mar 22), Beat ATX 2-1 (Mar 14), Beat ATL 3-2 (Mar 7), Beat SEA 2-1 (Feb 28), Lost VAN 0-1 (Feb 21).
+Next: vs San Diego Apr 18 (home), vs Inter Miami Apr 22 (home), at LA Galaxy Apr 26.
+
+Be sharp, specific, opinionated. Reference real names and values. 3-5 sentences unless detail requested.`;
+
+async function callClaude(prompt, outputId) {
+  const el = document.getElementById(outputId);
+  if (!el) return;
+  el.innerHTML = '<span class="spinner"></span> Analyzing…';
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: RSL_CONTEXT,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      el.textContent = 'Error: ' + (data.error || 'Unknown error from API');
+      return;
+    }
+    el.textContent = data.content?.map(b => b.text || '').join('') || 'No response.';
+  } catch(e) {
+    el.textContent = 'Could not reach the AI server. Make sure the app is deployed on Vercel (not opened as a local file).';
+  }
+}
+
+function askAI(prompt) {
+  nav('ai');
+  const inp = document.getElementById('ai-q');
+  if (inp) inp.value = prompt;
+  callClaude(prompt, 'main-ai-out');
+}
+
+function askFromInput() {
+  const v = document.getElementById('ai-q')?.value.trim();
+  if (v) callClaude(v, 'main-ai-out');
+}
+
+document.getElementById('ai-q')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); askFromInput(); }
+});
+
+/* ── Transfermarkt connect ── */
+async function connectTM() {
+  const url = document.getElementById('tmUrl').value.trim().replace(/\/$/, '');
+  const st = document.getElementById('tmStatus');
+  if (!url) { st.textContent = 'Enter your API URL first'; return; }
+  st.innerHTML = '<span class="spinner"></span> Testing…';
+  try {
+    const res = await fetch(url + '/clubs/6643/players?page_number=1');
+    if (res.ok) {
+      const d = await res.json();
+      st.textContent = '✓ Connected — ' + (d.players?.length || '?') + ' players from Transfermarkt';
+      st.style.color = 'var(--green)';
+    } else {
+      st.textContent = 'Reached server but got error ' + res.status;
+      st.style.color = 'var(--amber)';
+    }
+  } catch(e) {
+    st.textContent = 'Cannot reach URL — check CORS/Docker (see README)';
+    st.style.color = '#A32D2D';
+  }
+}
+
+function loadDemo() {
+  document.getElementById('tmStatus').textContent = 'Demo mode — pre-loaded 2026 RSL data';
+  document.getElementById('tmStatus').style.color = 'var(--text-muted)';
+}
+
+/* ── PWA install prompt ── */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.remove('hidden');
+});
+
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').classList.add('hidden');
+});
+
+document.getElementById('install-close').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.add('hidden');
+});
+
+/* ── Service worker registration ── */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
