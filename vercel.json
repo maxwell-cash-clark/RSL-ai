@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/claude", "destination": "/api/claude" },
+    { "source": "/api/transfermarkt", "destination": "/api/transfermarkt" },
     { "source": "/(.*)", "destination": "/public/index.html" }
   ],
   "headers": [
